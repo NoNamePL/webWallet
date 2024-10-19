@@ -1,18 +1,32 @@
 package main
 
 import (
-	server "github.com/NoNamePL/webWallet"
 	"log"
+
+	"github.com/NoNamePL/webWallet/database"
+	"github.com/NoNamePL/webWallet/iternal/config"
+	"github.com/NoNamePL/webWallet/iternal/handlers/wallet"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// TODO: init config
+	router := gin.Default()
 
-	// TODO: init logger
-
-	// TODO: init storage
-	srv := new(server.Server)
-	if err := srv.Run(":8080"); err != nil {
-		log.Fatalf("error occured while running http server: %s", err.Error())
+	// init config
+	cfg, err := config.NewConfig()
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	// connect to DB
+	db, err := database.ConnectDB(cfg)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	_ = db
+
+	router.GET("/api/v1/wallet", wallet.GetBalance)
+
+	router.Run()
 }
