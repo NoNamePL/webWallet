@@ -12,6 +12,9 @@ import (
 func main() {
 	router := gin.Default()
 
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
+
 	// init config
 	cfg, err := config.NewConfig()
 	if err != nil {
@@ -24,9 +27,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_ = db
 
-	router.GET("/api/v1/wallet", wallet.GetBalance)
+	// init handlers
+	wallet.RegisterRouter(router, db)
 
 	router.Run()
 }

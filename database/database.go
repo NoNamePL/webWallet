@@ -11,11 +11,11 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type Storage struct {
-	db *sql.DB
-}
+// type Storage struct {
+// 	db *sql.DB
+// }
 
-func ConnectDB(cfg *config.Config) (*Storage, error) {
+func ConnectDB(cfg *config.Config) (*sql.DB, error) {
 
 	// Connected to DB
 	connStr := fmt.Sprintf("host=db user=%s password=%s dbname=%s sslmode=disable",
@@ -28,8 +28,8 @@ func ConnectDB(cfg *config.Config) (*Storage, error) {
 	// Creating base tables in the database
 	stmt, err := db.Prepare(`
 		CREATE TABLE IF NOT EXISTS wallet(
-			valletId UUID DEFAULT gen_random_uuid(),
-    		amount BIGINT
+			valletId uuid UNIQUE NOT NULL DEFAULT gen_random_uuid(),
+    		amount INT
 		)
 	`)
 
@@ -37,12 +37,25 @@ func ConnectDB(cfg *config.Config) (*Storage, error) {
 		return nil, errors.New("can't prepere query of wallet table")
 	}
 
-	_ , err = stmt.Exec()
+	_, err = stmt.Exec()
 	if err != nil {
 		return nil, errors.New("can't create wallet table")
 	}
 
+	// Create index
+	stmt, err = db.Prepare(`
+		CREATE UNIQUE INDEX IF NOT EXISTS valIdx on wallet (valletId)
+	`)
 
-	return &Storage{db: db}, nil
+	if err != nil {
+		return nil, errors.New("can't prepere query of wallet table")
+	}
+
+	_, err = stmt.Exec()
+	if err != nil {
+		return nil, errors.New("can't create index")
+	}
+
+	return db, nil
 
 }
