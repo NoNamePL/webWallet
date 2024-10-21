@@ -15,7 +15,6 @@ type DBConfig struct {
 	Password string
 	DBName   string
 	Driver   string
-	WEBPort string
 }
 
 type Config struct {
@@ -36,7 +35,6 @@ func (c *Config) readConf() error {
 		Password: os.Getenv("DB_PASSWORD"),
 		DBName:   os.Getenv("DB_NAME"),
 		Driver:   os.Getenv("DRIVER"),
-		WEBPort: os.Getenv("WEB_HOST"),
 	}
 
 	if c.DBConfig.Host == "" ||
@@ -44,8 +42,7 @@ func (c *Config) readConf() error {
 		c.DBConfig.User == "" ||
 		c.DBConfig.Password == "" ||
 		c.DBConfig.DBName == "" ||
-		c.DBConfig.Driver == "" ||
-		c.DBConfig.WEBPort == "" {
+		c.DBConfig.Driver == "" {
 		return errors.New("missing requirement variables")
 	}
 	return nil

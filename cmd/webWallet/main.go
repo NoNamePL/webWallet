@@ -10,6 +10,8 @@ import (
 )
 
 func main() {
+	// init server
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
 	router.Use(gin.Logger())
@@ -31,5 +33,6 @@ func main() {
 	// init handlers
 	wallet.RegisterRouter(router, db)
 
+	// run server
 	router.Run()
 }

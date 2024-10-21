@@ -11,10 +11,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// type Storage struct {
-// 	db *sql.DB
-// }
-
 func ConnectDB(cfg *config.Config) (*sql.DB, error) {
 
 	// Connected to DB

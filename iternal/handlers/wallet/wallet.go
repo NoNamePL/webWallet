@@ -11,23 +11,26 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type handler struct {
+type Handler struct {
 	db *sql.DB
 }
 
 func RegisterRouter(router *gin.Engine, db *sql.DB) {
-	h := &handler{
+	h := &Handler{
 		db: db,
 	}
 
 	routers := router.Group("/api/v1")
-	routers.POST("/wallet", h.updWallet)
-	routers.GET("/wallets/:uuid", h.getBalance)
+	routers.POST("/wallet", h.UpdWallet)
+	routers.GET("/wallets/:uuid", h.GetBalance)
 }
 
-func (db *handler) getBalance(ctx *gin.Context) {
+// handler to get balance from wallet
+func (db *Handler) GetBalance(ctx *gin.Context) {
+	// Parse parameters from request
 	id := ctx.Param("uuid")
 
+	// Prepere query for select amount from BD
 	stmt, err := db.db.Prepare("SELECT amount FROM wallet WHERE valletId = ($1)")
 
 	if err != nil {
@@ -37,27 +40,34 @@ func (db *handler) getBalance(ctx *gin.Context) {
 
 	var resBalance string
 
+	// Excecute query and write result into variable
 	err = stmt.QueryRow(id).Scan(&resBalance)
 	if errors.Is(err, sql.ErrNoRows) {
-		fmt.Printf("not row in db, err: %s", err)
 		ctx.JSON(http.StatusNotFound, gin.H{
 			"Status": "not row in db",
 		})
 		return
+	} else if err != nil {
+		wrongQuery(ctx)
+		return
 	}
 
-	ctx.JSON(http.StatusOK, resBalance)
+	// return Balance
+	ctx.JSON(http.StatusOK, gin.H{
+		"Balance": resBalance,
+	})
 
 }
 
-func (db *handler) updWallet(ctx *gin.Context) {
+// handler to update or create wallet
+func (db *Handler) UpdWallet(ctx *gin.Context) {
 	var modelWallet models.Wallet
 	if err := ctx.BindJSON(&modelWallet); err != nil {
 		wrongQuery(ctx)
 		return
 	}
 
-	// check to DIPOSIT or WITHDRAW
+	// check type Operation to DIPOSIT or WITHDRAW
 	if modelWallet.OperationType == "WITHDRAW" {
 		modelWallet.Amount *= -1
 	} else if modelWallet.OperationType != "DEPOSIT" {
@@ -96,6 +106,7 @@ func (db *handler) updWallet(ctx *gin.Context) {
 			wrongQuery(ctx)
 			return
 		}
+		// if value is in BD we'll update it
 	} else if err == nil {
 		stmt, err := db.db.Prepare(`
 			UPDATE wallet
@@ -117,11 +128,11 @@ func (db *handler) updWallet(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"status": "you are create/change wallet",
-		"model":  modelWallet,
+		"status": "you are  successfully created wallet/change wallet's balance",
 	})
 }
 
+// Func that return json for error on bad request
 func wrongQuery(ctx *gin.Context) {
 	ctx.JSON(http.StatusBadRequest, gin.H{
 		"Status": "BadRequest",
