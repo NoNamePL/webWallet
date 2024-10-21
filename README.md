@@ -1,1 +1,42 @@
-This project has an api that is used as a web wallet, you can change the balance and find out your balance. Uses gin-gonic/gin golang library, postgres database and docker were used for this project
+Этот проект представляет собой API, который используется в качестве веб-кошелька, вы можете создать и изменить баланс своего кошелька, и узнать свой баланс.<br>
+## Стек проекта
+Gin, Go 1.23.2, PostgreSQL, godotenv 
+# Тестовое задание
+
+Напишите приложение, которое по REST принимает запрос вида<br>
+ POST api/v1/wallet<br>
+{<br>
+valletId: UUID,<br>
+operationType: DEPOSIT or WITHDRAW,<br>
+amount: 1000<br>
+}<br>
+после выполнять логику по изменению счета в базе данных<br>
+также есть возможность получить баланс кошелька<br>
+GET api/v1/wallets/{WALLET_UUID}<br>
+стек:<br>
+* Golang<br>
+* Postgresql<br>
+* Docker<br>
+Обратите особое внимание проблемам при работе в конкурентной среде (1000 RPS по одному кошельку). Ни один запрос не должен быть не обработан (50Х error)<br>
+приложение должно запускаться в докер контейнере, база данных тоже, вся система должна подниматься с помощью docker-compose<br>
+Необходимо покрыть приложение тестами<br>
+Решенное задание залить на гитхаб, предоставить ссылку<br>
+Переменные окружения должны считываться из файла config.env<br>
+Все возникающие вопросы по заданию решать самостоятельно, по своему усмотрению.<br>
+### Образец тела POST запроса
+
+{
+    "valletId":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+    "operationType":"WITHDRAW",
+    "amount":1000
+}<br>
+Образец POST запроса<br>
+- [http://localhost:8080/api/v1/wallet](http://localhost:8080/api/v1/wallet)<br>
+Образец GET запроса<br>
+- [http://localhost:8080/api/v1/wallets/](http://localhost:8080/api/v1/wallets/){нужный UUID}
+<br>
+<br>
+
+## P.S
+amount  - может быть только целочисленным(по логике float64 должен быть, но сделал так);<br>
+при post запросе, если указать WITHDRAW и отрицательное значение amount, он прибавит к балансу значения amount(решил оставить так)
